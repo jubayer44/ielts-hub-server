@@ -43,7 +43,10 @@ async function connectDb(){
             console.log(newReview);
         });
 
-
+        app.get('/reviews', async (req, res) => {
+            const results = await reviewCollection.find({}).toArray();
+            res.send(results);
+        });
 
 
     }
