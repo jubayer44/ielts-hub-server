@@ -18,8 +18,15 @@ async function connectDb(){
         const serviceCollection = client.db('IELTS-Hub').collection('services');
         const reviewCollection = client.db('IELTS-Hub').collection('review');
 
-        app.get('/data', (req, res)  => {
-            res.send('database connection successful')
+        app.get('/', async (req, res) => {
+            results = await serviceCollection.find({}).limit(3).toArray();
+            res.send(results);
+
+        });
+
+        app.get('/services', async (req, res)  => {
+            const services = await serviceCollection.find({}).toArray();
+            res.send(services)
         })
     }
     finally {
@@ -28,10 +35,6 @@ async function connectDb(){
 }
 connectDb().catch(err => console.log(err));
 
-
-app.get('/', (req, res) => {
-    res.send('IELTS Server is running')
-});
 
 app.listen(port, () =>{
     console.log(`server running on port ${port}`);
