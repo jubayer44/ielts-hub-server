@@ -35,6 +35,14 @@ async function connectDb(){
             res.send(service);
         });
 
+        //Reviews Routes
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+            const newReview = await reviewCollection.insertOne(review);
+            res.send(newReview)
+            console.log(newReview);
+        });
+
 
 
 
