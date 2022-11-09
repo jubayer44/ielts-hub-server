@@ -61,6 +61,13 @@ async function connectDb() {
         res.send(reviews);
       });
 
+      app.delete('/reviews/:id', async (req, res) => {
+        const {id} = req.params;
+        const results = await reviewCollection.deleteOne({_id: ObjectId(id)})
+        console.log(results);
+        res.send(results);
+      });
+
 
 
 
