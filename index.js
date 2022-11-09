@@ -51,6 +51,16 @@ async function connectDb() {
         res.send(newReview);
       });
 
+      app.get('/my-reviews', async (req, res) => {
+        const email = req.query.email;
+        let query = {};
+        if(email){
+            query = {userEmail: email};
+        }
+        const reviews = await reviewCollection.find(query).toArray();
+        res.send(reviews);
+      });
+
 
 
 
