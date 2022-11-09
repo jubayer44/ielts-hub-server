@@ -38,6 +38,13 @@ async function connectDb() {
       res.send(service);
     });
 
+    //Routes for Add service page 
+    app.post("/services", async (req, res) => {
+        const newService = req.body;
+        const addService = await serviceCollection.insertOne(newService);
+        res.send(addService)
+    });
+
     //Reviews Routes
     app.get("/reviews/:id", async (req, res) => {
       const { id } = req.params;
