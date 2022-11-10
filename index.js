@@ -26,7 +26,7 @@ function jwtVerify(req, res, next) {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
         if(err){
-            return res.status(403).send({message: 'Unauthorized access'});
+            return res.status(403).send({message: 'Forbidden access'});
         }
         req.decoded = decoded;
         next();
@@ -63,7 +63,7 @@ async function connectDb() {
     });
 
     //Routes for Add service page 
-    app.post("/services", async (req, res) => {
+    app.post("/services",jwtVerify, async (req, res) => {
         const newService = req.body;
         const addService = await serviceCollection.insertOne(newService);
         res.send(addService)
@@ -72,11 +72,11 @@ async function connectDb() {
     //Reviews Routes
     app.get("/reviews/:id", async (req, res) => {
       const { id } = req.params;
-      const results = await reviewCollection.find({ serviceId: id }).toArray();
+      const results = await reviewCollection.find({ serviceId: id }).sort({addTime: -1}).toArray();
       res.send(results);
     });
 
-    app.post("/reviews/", async (req, res) => {
+    app.post("/reviews/", jwtVerify, async (req, res) => {
       const review = req.body;
       const newReview = await reviewCollection.insertOne(review);
       res.send(newReview);
@@ -87,7 +87,7 @@ async function connectDb() {
       const decoded = req.decoded;
       
       if(decoded.email !== email){
-        return res.status(403).send({message: 'Unauthorized access'});
+        return res.status(403).send({message: 'Forbidden access'});
       }
       let query = {};
       if (email) {
@@ -104,7 +104,7 @@ async function connectDb() {
       res.send(results);
     });
 
-    app.patch("/reviews/:id", async (req, res) => {
+    app.patch("/reviews/:id", jwtVerify, async (req, res) => {
       const { id } = req.params;
       const query = { _id: ObjectId(id) };
       const { text } = req.body;
@@ -115,7 +115,7 @@ async function connectDb() {
       res.send(updateReview);
     });
 
-    app.delete("/reviews/:id", async (req, res) => {
+    app.delete("/reviews/:id", jwtVerify, async (req, res) => {
       const { id } = req.params;
       const results = await reviewCollection.deleteOne({ _id: ObjectId(id) });
       res.send(results);
