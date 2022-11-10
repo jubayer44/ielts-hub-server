@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
@@ -16,22 +16,21 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-
 function jwtVerify(req, res, next) {
-    const authHeader = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
-    if(!authHeader){
-        return res.status(401).send({message: 'Unauthorized access'});
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
     }
-    const token = authHeader.split(' ')[1];
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
-        if(err){
-            return res.status(403).send({message: 'Forbidden access'});
-        }
-        req.decoded = decoded;
-        next();
-    })
-};
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function connectDb() {
   try {
@@ -39,19 +38,29 @@ async function connectDb() {
     const reviewCollection = client.db("IELTS-Hub").collection("review");
 
     app.post("/jwt", (req, res) => {
-        const user = req.body;
-        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'})
-        res.send({token})
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      res.send({ token });
     });
 
     //Routes for Home page services
     app.get("/", async (req, res) => {
-      results = await serviceCollection.find({}).limit(3).toArray();
+      results = await serviceCollection
+        .find({})
+        .limit(3)
+        .sort({ addTime: -1 })
+        .toArray();
       res.send(results);
+      console.log(results);
     });
 
     app.get("/services", async (req, res) => {
-      const services = await serviceCollection.find({}).toArray();
+      const services = await serviceCollection
+        .find({})
+        .sort({ addTime: -1 })
+        .toArray();
       res.send(services);
     });
 
@@ -62,18 +71,22 @@ async function connectDb() {
       res.send(service);
     });
 
-    //Routes for Add service page 
-    app.post("/services",jwtVerify, async (req, res) => {
-        const newService = req.body;
-        const addService = await serviceCollection.insertOne(newService);
-        res.send(addService)
+    //Routes for Add service page
+    app.post("/services", jwtVerify, async (req, res) => {
+      const newService = req.body;
+      const addService = await serviceCollection.insertOne(newService);
+      res.send(addService);
     });
 
     //Reviews Routes
     app.get("/reviews/:id", async (req, res) => {
       const { id } = req.params;
-      const results = await reviewCollection.find({ serviceId: id }).sort({addTime: -1}).toArray();
+      const results = await reviewCollection
+        .find({ serviceId: id })
+        .sort({ addTime: -1 })
+        .toArray();
       res.send(results);
+      console.log(results);
     });
 
     app.post("/reviews/", jwtVerify, async (req, res) => {
@@ -85,9 +98,9 @@ async function connectDb() {
     app.get("/my-reviews", jwtVerify, async (req, res) => {
       const email = req.query.email;
       const decoded = req.decoded;
-      
-      if(decoded.email !== email){
-        return res.status(403).send({message: 'Forbidden access'});
+
+      if (decoded.email !== email) {
+        return res.status(403).send({ message: "Forbidden access" });
       }
       let query = {};
       if (email) {
