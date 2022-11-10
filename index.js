@@ -30,7 +30,7 @@ function jwtVerify(req, res, next) {
     req.decoded = decoded;
     next();
   });
-}
+};
 
 async function connectDb() {
   try {
@@ -54,16 +54,20 @@ async function connectDb() {
         .sort({ addTime: -1 })
         .toArray();
       res.send(results);
-      console.log(results);
     });
 
     //All services routes
     app.get("/services", async (req, res) => {
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
       const services = await serviceCollection
         .find({})
         .sort({ addTime: -1 })
+        .skip(page * size)
+        .limit(size)
         .toArray();
-      res.send(services);
+        const count = await serviceCollection.estimatedDocumentCount()
+      res.send({count, services});
     });
 
     //find single service
@@ -81,6 +85,8 @@ async function connectDb() {
       res.send(addService);
     });
 
+    app
+
     //Reviews Routes
     app.get("/reviews/:id", async (req, res) => {
       const { id } = req.params;
@@ -89,7 +95,7 @@ async function connectDb() {
         .sort({ addTime: -1 })
         .toArray();
       res.send(results);
-      console.log(results);
+      // console.log(results);
     });
 
     //Add review routes
