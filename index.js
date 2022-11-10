@@ -37,6 +37,7 @@ async function connectDb() {
     const serviceCollection = client.db("IELTS-Hub").collection("services");
     const reviewCollection = client.db("IELTS-Hub").collection("review");
 
+    //JWT routes
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -45,7 +46,7 @@ async function connectDb() {
       res.send({ token });
     });
 
-    //Routes for Home page services
+    //Limit Routes for Home page services
     app.get("/", async (req, res) => {
       results = await serviceCollection
         .find({})
@@ -56,6 +57,7 @@ async function connectDb() {
       console.log(results);
     });
 
+    //All services routes
     app.get("/services", async (req, res) => {
       const services = await serviceCollection
         .find({})
@@ -64,6 +66,7 @@ async function connectDb() {
       res.send(services);
     });
 
+    //find single service
     app.get("/services/:id", async (req, res) => {
       const { id } = req.params;
 
@@ -89,12 +92,14 @@ async function connectDb() {
       console.log(results);
     });
 
+    //Add review routes
     app.post("/reviews/", jwtVerify, async (req, res) => {
       const review = req.body;
       const newReview = await reviewCollection.insertOne(review);
       res.send(newReview);
     });
 
+    //My review routes
     app.get("/my-reviews", jwtVerify, async (req, res) => {
       const email = req.query.email;
       const decoded = req.decoded;
@@ -117,6 +122,7 @@ async function connectDb() {
       res.send(results);
     });
 
+    //Update review routes
     app.patch("/reviews/:id", jwtVerify, async (req, res) => {
       const { id } = req.params;
       const query = { _id: ObjectId(id) };
@@ -128,6 +134,7 @@ async function connectDb() {
       res.send(updateReview);
     });
 
+    //Delete review routes
     app.delete("/reviews/:id", jwtVerify, async (req, res) => {
       const { id } = req.params;
       const results = await reviewCollection.deleteOne({ _id: ObjectId(id) });
